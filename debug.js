@@ -100,7 +100,7 @@
 
                 const resizeHandle = document.createElement('div');
                 resizeHandle.id = 'resizeHandle';
-                resizeHandle.style.cssText = "background-color: #444; height: 10px; cursor: grab; width: 100%;";
+                resizeHandle.style.cssText = "background-color: #444; height: 15px; cursor: grab; width: 100%;";
 
                 const outputContainer = document.createElement('div');
                 outputContainer.id = 'consoleOutput';
@@ -210,7 +210,7 @@
                 errorStackDiv.style.color = '#ccc';
 
                 message.stack.split('\n').forEach(line => {
-                    const regex = /(file:\/\/\/[^\s]+):(\d+):(\d+)/;
+                    const regex = /(?:https?|file):\/+([^/?#:]+\/[^/?#:]*)/;
                     const match = regex.exec(line);
 
                     const lineDiv = document.createElement('div');
@@ -249,7 +249,7 @@
 
         // Process the error stack and extract the first file URL and its error line.
         function processLink(url, line, column, openAsLink) {
-            const urlRegex = /(file:\/\/\/[^\s]+):(\d+):(\d+)/;
+            const urlRegex = /(?:https?|file):\/+([^/?#:]+\/[^/?#:]*)/;
             let processedUrl = url;
             const match = urlRegex.exec(url);
             if (match) {
