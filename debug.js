@@ -86,8 +86,8 @@
 
         document.body.appendChild(frameContainer);
 
-        // Set initial height of console output as 50% of the body height
-        outputContainer.style.height = `${document.body.clientHeight / 2}px`;
+        // Set initial height of console output as 33% of the client height
+        outputContainer.style.height = `${window.screen.height / 3}px`;
 
         // Define both emoji and border color in a single matrix
         const consoleStyles = {
