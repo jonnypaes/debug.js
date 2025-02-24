@@ -1,10 +1,21 @@
 <!DOCTYPE html>
 <html>
   <head> 
-    <title>Blank Document</title>
+    <title>Debug.js Example</title>
+    <script src="debug.js"></script>
   </head>
   <body>
-    <script src="debug.js" ></script>
-    ...
+    Add '?debug=true' to URL params or <a href="?debug=true">click here</a> 
+    
+    <script>
+      setTimeout(() => {
+		    console.log("This is a log message!");
+		    console.warn("This is a warning!");
+		    console.error(new Error("This is an error!"));
+		    console.info("This is an informational message.");
+        console.debug("This is a debug message.");
+	   }, 1000);
+    </script>
+    
   </body>
 </html>
