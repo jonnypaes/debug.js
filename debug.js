@@ -19,8 +19,29 @@
 
     const isDebug = getParams("debug") === "true";
 
+    function waitForBody() {
+        return new Promise((resolve) => {
+            if (document.body) {
+                resolve(document.body); // Resolve immediately if body is already available
+            } else {
+                const observer = new MutationObserver(() => {
+                    if (document.body) {
+                        observer.disconnect(); // Stop observing once the body is found
+                        resolve(document.body); // Resolve once the body is available
+                    }
+                });
+
+                observer.observe(document, {
+                    childList: true,
+                    subtree: true
+                });
+            }
+        });
+    };
+
     // Only override console functions if isDebug is truthy
     if (isDebug) {
+        modifyBody();
         try {
             // Preserve original console methods
             const originalConsoleLog = console.log;
@@ -64,30 +85,57 @@
             };
         } catch (e) {
             console.error("Error setting up debug console:", e);
-        }
+        };
 
-        document.body.style.cssText = "margin: 0; padding: 0; overflow-x: hidden; height: 100vh;";
+        function modifyBody() {
+            waitForBody().then((body) => {
 
-        // Create the console output and resize handle dynamically
-        const frameContainer = document.createElement('div');
-        frameContainer.id = 'frameContainer';
-        frameContainer.style.cssText = "margin-top: 15px; display: flex; flex-direction: column; align-items: center; width: 100%; position: fixed; bottom: 0; z-index: 9999;";
+                // Once the body is ready, apply styles and append content
+                body.style.cssText = "margin: 0; padding: 0; overflow-x: hidden; height: 100vh;";
 
-        const resizeHandle = document.createElement('div');
-        resizeHandle.id = 'resizeHandle';
-        resizeHandle.style.cssText = "background-color: #444; height: 10px; cursor: grab; width: 100%;";
+                // Create the console output and resize handle dynamically
+                const frameContainer = document.createElement('div');
+                frameContainer.id = 'frameContainer';
+                frameContainer.style.cssText = "margin-top: 15px; display: flex; flex-direction: column; align-items: center; width: 100%; position: fixed; bottom: 0; z-index: 9999;";
 
-        const outputContainer = document.createElement('div');
-        outputContainer.id = 'consoleOutput';
-        outputContainer.style.cssText = "display: flex; flex-direction: column; font-family: Arial, sans-serif; width: 100%; background-color: #282828; color: white; padding: 10px; box-sizing: border-box; overflow-y: scroll; height: 50%;";
+                const resizeHandle = document.createElement('div');
+                resizeHandle.id = 'resizeHandle';
+                resizeHandle.style.cssText = "background-color: #444; height: 10px; cursor: grab; width: 100%;";
 
-        frameContainer.appendChild(resizeHandle);
-        frameContainer.appendChild(outputContainer);
+                const outputContainer = document.createElement('div');
+                outputContainer.id = 'consoleOutput';
+                outputContainer.style.cssText = "display: flex; flex-direction: column; font-family: Arial, sans-serif; width: 100%; background-color: #282828; color: white; padding: 10px; box-sizing: border-box; overflow-y: scroll; height: 50%;";
 
-        document.body.appendChild(frameContainer);
+                frameContainer.appendChild(resizeHandle);
+                frameContainer.appendChild(outputContainer);
+                body.appendChild(frameContainer);
 
-        // Set initial height of console output as 33% of the client height
-        outputContainer.style.height = `${window.screen.height / 3}px`;
+                // Set initial height of console output **after** it's created
+                outputContainer.style.height = `${window.screen.height / 3}px`;
+
+                // Mouse events
+                resizeHandle.addEventListener('mousedown', startResizing);
+                document.addEventListener('mousemove', handleResize, {
+                    passive: true
+                });
+                document.addEventListener('mouseup', stopResizing);
+
+                // Touch events
+                resizeHandle.addEventListener('touchstart', startResizing, {
+                    passive: true
+                });
+                document.addEventListener('touchmove', (e) => {
+                    e.preventDefault(); // Prevent pull-to-refresh
+                    handleResize(e);
+                }, {
+                    passive: false
+                });
+                document.addEventListener('touchend', stopResizing, {
+                    passive: true
+                });
+
+            });
+        };
 
         // Define both emoji and border color in a single matrix
         const consoleStyles = {
@@ -122,9 +170,6 @@
                 border: '#000'
             };
             entry.style.borderLeft = `5px solid ${border}`;
-
-            //entry.style.display = 'flex';
-            //entry.style.flexDirection = 'column';
 
             const emojiElement = document.createElement('span');
             emojiElement.classList.add('emoji');
@@ -201,7 +246,6 @@
         let isResizing = false;
         let lastY = 0;
 
-
         // Common resize logic
         function handleResize(e) {
             if (!isResizing) return;
@@ -235,27 +279,6 @@
             document.body.style.cursor = 'default'; // Reset cursor
         }
 
-        // Mouse events
-        resizeHandle.addEventListener('mousedown', startResizing);
-        document.addEventListener('mousemove', handleResize, {
-            passive: true
-        });
-        document.addEventListener('mouseup', stopResizing);
-
-        // Touch events
-        resizeHandle.addEventListener('touchstart', startResizing, {
-            passive: true
-        });
-        document.addEventListener('touchmove', (e) => {
-            e.preventDefault(); // Prevent pull-to-refresh
-            handleResize(e);
-        }, {
-            passive: false
-        });
-        document.addEventListener('touchend', stopResizing, {
-            passive: true
-        });
-
         /*
 	   // Test the logging functions
 	   setTimeout(() => {
@@ -264,6 +287,6 @@
 		   console.error(new Error("This is an error!"));
 		   console.info("This is an informational message.");
 	   }, 1000);
-	*/
-    }
+	   */
+    };
 })();
