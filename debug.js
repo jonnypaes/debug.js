@@ -89,9 +89,6 @@
 	   // Set initial height of console output as 50% of the body height
 	   outputContainer.style.height = `${document.body.clientHeight / 2}px`;
 
-	   let isResizing = false;
-	   let lastY = 0;
-
 		// Define both emoji and border color in a single matrix
 		const consoleStyles = {
 			log: { emoji: '🟢', border: '#4CAF50' },
@@ -182,37 +179,54 @@
 		   }
 	   }
 
-	   // Resizing logic (aligning cursor to the handle and updating height)
-	   resizeHandle.addEventListener('mousedown', (e) => {
-		   isResizing = true;
-		   lastY = e.clientY;
-		   document.body.style.cursor = 'grabbing'; // Cursor changes to grabbing when resizing starts
-	   });
+		// Initialize variables
+		let isResizing = false;
+		let lastY = 0;
 
-	   document.addEventListener('mousemove', (e) => {
-		   if (isResizing) {
-			   const deltaY = e.clientY - lastY; // Track mouse movement
-			   const newHeight = outputContainer.clientHeight - deltaY; // Adjust height directly
-			   const bodyHeight = document.body.clientHeight;
+		// Common resize logic
+		function handleResize(e) {
+			if (!isResizing) return;
 
-			   // Prevent the resize from going out of bounds
-			   if (newHeight > 50 && newHeight < bodyHeight - 100) {
-				   outputContainer.style.height = `${newHeight}px`;
-			   }
-			   lastY = e.clientY;
+			const clientY = e.clientY || e.touches[0].clientY; // Use touch for mobile, mouse for desktop
+			const deltaY = clientY - lastY; // Track movement
+			const newHeight = outputContainer.clientHeight - deltaY; // Adjust height directly
+			const bodyHeight = document.body.clientHeight;
 
-			   // Make sure the cursor stays aligned with the handle during drag
-			   const newCursorPosY = e.clientY;
-			   resizeHandle.style.top = `${newCursorPosY}px`;
-		   }
-	   });
+			// Prevent resize from going out of bounds
+			if (newHeight > 50 && newHeight < bodyHeight - 100) {
+				outputContainer.style.height = `${newHeight}px`;
+			}
+			lastY = clientY;
 
-	   document.addEventListener('mouseup', () => {
-		   isResizing = false;
-		   document.body.style.cursor = 'default'; // Default cursor when not resizing
-	   });
-         
-	/*
+			// Update the position of the handle
+			const newCursorPosY = clientY;
+			resizeHandle.style.top = `${newCursorPosY}px`;
+		}
+
+		// Start resizing (common for mouse and touch)
+		function startResizing(e) {
+			isResizing = true;
+			lastY = e.clientY || e.touches[0].clientY; // Capture initial position
+			document.body.style.cursor = 'grabbing'; // Change cursor
+		}
+
+		// Stop resizing (common for mouse and touch)
+		function stopResizing() {
+			isResizing = false;
+			document.body.style.cursor = 'default'; // Reset cursor
+		}
+
+		// Mouse events
+		resizeHandle.addEventListener('mousedown', startResizing);
+		document.addEventListener('mousemove', handleResize);
+		document.addEventListener('mouseup', stopResizing);
+
+		// Touch events
+		resizeHandle.addEventListener('touchstart', startResizing);
+		document.addEventListener('touchmove', handleResize);
+		document.addEventListener('touchend', stopResizing);
+
+       /*
 	   // Test the logging functions
 	   setTimeout(() => {
 		   console.log("This is a log message!");
@@ -220,6 +234,6 @@
 		   console.error(new Error("This is an error!"));
 		   console.info("This is an informational message.");
 	   }, 1000);
-	*/	  
+	   */
 	}	   
 })();
