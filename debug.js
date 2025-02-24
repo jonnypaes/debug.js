@@ -211,7 +211,8 @@
 		   isResizing = false;
 		   document.body.style.cursor = 'default'; // Default cursor when not resizing
 	   });
-
+         
+	/*
 	   // Test the logging functions
 	   setTimeout(() => {
 		   console.log("This is a log message!");
@@ -219,5 +220,6 @@
 		   console.error(new Error("This is an error!"));
 		   console.info("This is an informational message.");
 	   }, 1000);
+	*/	  
 	}	   
 })();
