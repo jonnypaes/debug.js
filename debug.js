@@ -209,7 +209,7 @@
             const clientY = e.clientY || e.touches[0].clientY; // Use touch for mobile, mouse for desktop
             const deltaY = clientY - lastY; // Track movement
             const newHeight = outputContainer.clientHeight - deltaY; // Adjust height directly
-            const bodyHeight = document.body.clientHeight;
+            const bodyHeight = window.screen.height;
 
             // Prevent resize from going out of bounds
             if (newHeight > 50 && newHeight < bodyHeight - 100) {
