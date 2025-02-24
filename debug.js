@@ -180,7 +180,7 @@
         function addToConsole(message, type) {
             const entry = document.createElement('div');
             entry.classList.add('consoleEntry', type);
-            entry.style.cssText = "display:flex;flexDirection:column;background: rgba(255, 255, 255, 0.1); padding: 10px; margin: 5px 0; border-radius: 5px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);";
+            entry.style.cssText = "display:flex;flex-direction:column;background: rgba(255, 255, 255, 0.1); padding: 10px; margin: 5px 0; border-radius: 5px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);";
             const {
                 emoji,
                 border
