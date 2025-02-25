@@ -78,7 +78,17 @@
             padding: "10px",
             boxSizing: "border-box",
             overflowY: "scroll",
-            height: "50%"
+            height: "50%",
+            touchAction: "auto",
+        },
+        consoleEntry: {
+            display: "flex",
+            flexDirection: "column",
+            background: "rgba(255, 255, 255, 0.1)",
+            padding: "10px",
+            margin: "5px 0",
+            borderRadius: "5px",
+            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.3)"
         }
     };
 
@@ -201,21 +211,20 @@
             });
             document.addEventListener('mouseup', stopResizing);
 
-            // Touch events
             resizeHandle.addEventListener('touchstart', startResizing, {
                 passive: true
             });
-                    
+
+            // Touch events			
             document.addEventListener('touchmove', (e) => {
-                    e.preventDefault(); // Prevent pull-to-refresh
-                    handleResize(e);
-                }, {
-                    passive: false
-                });
-                document.addEventListener('touchend', stopResizing, {
-                    passive: true
-                });
-            };
+                e.preventDefault(); // Prevent pull-to-refresh
+                handleResize(e);
+            }, {
+                passive: false
+            });
+            document.addEventListener('touchend', stopResizing, {
+                passive: true
+            });
 
             // Common resize logic
             function handleResize(e) {
@@ -242,7 +251,8 @@
         function addToConsole(message, type) {
             const entry = document.createElement('div');
             entry.classList.add('consoleEntry', type);
-            entry.style.cssText = "display:flex;flex-direction:column;background: rgba(255, 255, 255, 0.1); padding: 10px; margin: 5px 0; border-radius: 5px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);";
+            applyStyles(entry, styles.consoleEntry);
+
             const {
                 emoji,
                 border
@@ -284,7 +294,6 @@
                 lineDiv.appendChild(link);
 
                 errorStackDiv.appendChild(lineDiv);
-                //alert(message.fileName);
 
                 entry.appendChild(errorNameDiv);
                 entry.appendChild(errorStackDiv);
@@ -301,15 +310,15 @@
 
         function processLink(url, line, column, openAsLink) {
             if (openAsLink) {
-                window.open(`${url}#L${line}`, '_blank'); // `${processedUrl}#L${line}`
+                window.open(`${url}#L${line}`, '_blank');
             } else {
-                fetchFileContent(url, line, openAsLink); // '⛶'
+                fetchFileContent(url, line, openAsLink);
             }
         };
 
         function fetchFileContent(fileUrl, errorLine, openAsLink) {
             if (fileUrl === location.href || fileUrl.indexOf(location.pathname) !== -1) {
-                // let serializedContent = new XMLSerializer().serializeToString(document);
+                let serializedContent = new XMLSerializer().serializeToString(document);
                 fullScreen(serializedContent, errorLine);
             } else {
                 fetch(fileUrl)
@@ -366,4 +375,8 @@
             modifyBody();
             processQueue();
         });
+
+        console.error(new Error("This is an error!"));
+
+    };
 })();
