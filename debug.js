@@ -316,17 +316,48 @@
             }
         };
 
+
         function fetchFileContent(fileUrl, errorLine, openAsLink) {
-            if (fileUrl === location.href || fileUrl.indexOf(location.pathname) !== -1) {
-                let serializedContent = new XMLSerializer().serializeToString(document);
-                fullScreen(serializedContent, errorLine);
-            } else {
-                fetch(fileUrl)
-                    .then(response => response.text())
-                    .then(content => fullScreen(content, errorLine))
-                    .catch(err => console.error('Error fetching file:', err));
-            }
-        }
+            fetch(fileUrl)
+                .then(response => {
+                    let contentType = response.headers.get("Content-Type");
+
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch: ${response.statusText}`);
+                    }
+
+                    // Detect file type based on Content-Type
+                    if (contentType.includes("application/json")) {
+                        return response.json(); // Parse as JSON
+                    } else if (
+                        contentType.includes("text/html") ||
+                        contentType.includes("text/css") ||
+                        contentType.includes("text/javascript") ||
+                        contentType.includes("application/javascript")
+                    ) {
+                        return response.text(); // Parse as text (HTML, CSS, JS)
+                    } else if (contentType.includes("image")) {
+                        return response.blob(); // Handle images
+                    } else {
+                        return response.arrayBuffer(); // Fallback for unknown formats
+                    }
+                })
+                .then(data => {
+                    let processedContent;
+
+                    // Process content based on type
+                    if (typeof data === "object" && !(data instanceof Blob)) {
+                        processedContent = JSON.stringify(data, null, 2); // Pretty-print JSON
+                    } else if (data instanceof Blob) {
+                        processedContent = URL.createObjectURL(data); // Convert Blob (images)
+                    } else {
+                        processedContent = data; // Text-based content
+                    }
+
+                    fullScreen(processedContent, errorLine);
+                })
+                .catch(err => console.error("Error fetching file:", err));
+        };
 
         function fullScreen(content, errorLine) {
             const lines = content.split('\n');
@@ -376,7 +407,8 @@
             processQueue();
         });
 
-        console.error(new Error("This is an error!"));
+        console.error(new Error("This is a thrown error!"));
 
     };
+
 })();
