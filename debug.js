@@ -127,7 +127,7 @@
 
             const resizeHandle = document.createElement('div');
             resizeHandle.id = 'resizeHandle';
-            resizeHandle.style.cssText = "background-color: #444; height: 10px; cursor: grab; width: 100%;";
+            resizeHandle.style.cssText = "background-color: #444; height: 15px; cursor: grab; width: 100%;";
 
             const outputContainer = document.createElement('div');
             outputContainer.id = 'consoleOutput';
