@@ -22,6 +22,7 @@
     })();
 
     const isDebug = getParams("debug") === "true";
+    const isLink = getParams("link") === "true";
 
     // Define both emoji and border color in a single matrix
     const consoleStyles = {
@@ -40,6 +41,44 @@
         info: {
             emoji: '🔵',
             border: '#2196F3'
+        }
+    };
+
+    // Define CSS
+    const styles = {
+        body: {
+            margin: "0",
+            padding: "0",
+            overflowX: "hidden",
+            height: "100vh"
+        },
+        frameContainer: {
+            marginTop: "15px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            width: "100%",
+            position: "fixed",
+            bottom: "0",
+            zIndex: "9999"
+        },
+        resizeHandle: {
+            backgroundColor: "#444",
+            height: "15px",
+            cursor: "grab",
+            width: "100%"
+        },
+        consoleOutput: {
+            display: "flex",
+            flexDirection: "column",
+            fontFamily: "Arial, sans-serif",
+            width: "100%",
+            backgroundColor: "#282828",
+            color: "white",
+            padding: "10px",
+            boxSizing: "border-box",
+            overflowY: "scroll",
+            height: "50%"
         }
     };
 
@@ -115,23 +154,38 @@
             console.error("Error setting up debug console:", e);
         };
 
-        function modifyBody() {
+        //Apply the CSS to the body
+        function applyStyles(element, styleObject) {
+            const proxy = new Proxy(styleObject, {
+                set(target, prop, value) {
+                    if (prop in element.style) {
+                        element.style[prop] = value;
+                    } else {
+                        console.warn(`Invalid CSS property: ${prop}`);
+                    }
+                    return true;
+                }
+            });
 
-            // Once the body is ready, apply styles and append content
-            document.body.style.cssText = "margin: 0; padding: 0; overflow-x: hidden; height: 100vh;";
+            Object.assign(proxy, styleObject);
+        };
+
+        function modifyBody() {
+            // Apply CSS to body
+            applyStyles(document.body, styles.body);
 
             // Create the console output and resize handle dynamically
             const frameContainer = document.createElement('div');
             frameContainer.id = 'frameContainer';
-            frameContainer.style.cssText = "margin-top: 15px; display: flex; flex-direction: column; align-items: center; width: 100%; position: fixed; bottom: 0; z-index: 9999;";
+            applyStyles(frameContainer, styles.frameContainer);
 
             const resizeHandle = document.createElement('div');
             resizeHandle.id = 'resizeHandle';
-            resizeHandle.style.cssText = "background-color: #444; height: 15px; cursor: grab; width: 100%;";
+            applyStyles(resizeHandle, styles.resizeHandle);
 
             const outputContainer = document.createElement('div');
             outputContainer.id = 'consoleOutput';
-            outputContainer.style.cssText = "display: flex; flex-direction: column; font-family: Arial, sans-serif; width: 100%; background-color: #282828; color: white; padding: 10px; box-sizing: border-box; overflow-y: scroll; height: 50%;";
+            applyStyles(outputContainer, styles.consoleOutput);
 
             frameContainer.appendChild(resizeHandle);
             frameContainer.appendChild(outputContainer);
@@ -149,15 +203,6 @@
 
             // Touch events
             resizeHandle.addEventListener('touchstart', startResizing, {
-                passive: true
-            });
-            document.addEventListener('touchmove', (e) => {
-                e.preventDefault(); // Prevent pull-to-refresh
-                handleResize(e);
-            }, {
-                passive: false
-            });
-            document.addEventListener('touchend', stopResizing, {
                 passive: true
             });
 
@@ -212,31 +257,23 @@
                 errorStackDiv.style.fontSize = '0.9em';
                 errorStackDiv.style.color = '#ccc';
 
-                message.stack.split('\n').forEach(line => {
-                    const regex = /(\/\/\/[^\s]+):(\d+):(\d+)/;
+                const lineDiv = document.createElement('div');
 
-                    const match = regex.exec(line);
+                const link = document.createElement('div');
+                cleanUrl = message.fileName.split("?")[0];
+                link.href = cleanUrl;
 
-                    const lineDiv = document.createElement('div');
+                link.textContent = `${cleanUrl} | ${message.lineNumber} : ${message.columnNumber}`;
+                link.style.color = 'royalblue';
+                link.style.cursor = 'pointer';
+                link.onclick = (e) => {
+                    e.preventDefault();
+                    processLink(message.fileName.split("?")[0], message.lineNumber, message.columnNumber, !isLink);
+                };
+                lineDiv.appendChild(link);
 
-                    if (match) {
-                        const [_, fileUrl, lineNumber, columnNumber] = match;
-                        const link = document.createElement('a');
-                        link.href = fileUrl;
-                        link.textContent = line.trim();
-                        link.style.color = 'royalblue';
-                        link.style.cursor = 'pointer';
-                        link.onclick = (e) => {
-                            e.preventDefault();
-                            processLink(fileUrl, parseInt(lineNumber, 10), parseInt(columnNumber, 10), true);
-                        };
-                        lineDiv.appendChild(link);
-                    } else {
-                        lineDiv.textContent = line.trim();
-                    }
-
-                    errorStackDiv.appendChild(lineDiv);
-                });
+                errorStackDiv.appendChild(lineDiv);
+                //alert(message.fileName);
 
                 entry.appendChild(errorNameDiv);
                 entry.appendChild(errorStackDiv);
@@ -251,19 +288,55 @@
             document.getElementById('consoleOutput').appendChild(entry);
         };
 
-        // Process the error stack and extract the first file URL and its error line.
         function processLink(url, line, column, openAsLink) {
-            const urlRegex = /(?:https?|file):\/+([^/?#:]+\/[^/?#:]*)/;
-            let processedUrl = url;
-            const match = urlRegex.exec(url);
-            if (match) {
-                processedUrl = match[1];
-            }
-
             if (openAsLink) {
-                window.open(`${processedUrl}#L${line}`, '_blank'); // `${processedUrl}#L${line}`
+                window.open(`${url}#L${line}`, '_blank'); // `${processedUrl}#L${line}`
+            } else {
+                fetchFileContent(url, line, openAsLink); // '⛶'
             }
         };
+
+        function fetchFileContent(fileUrl, errorLine, openAsLink) {
+            if (fileUrl === location.href || fileUrl.indexOf(location.pathname) !== -1) {
+                // let serializedContent = new XMLSerializer().serializeToString(document);
+                fullScreen(serializedContent, errorLine);
+            } else {
+                fetch(fileUrl)
+                    .then(response => response.text())
+                    .then(content => fullScreen(content, errorLine))
+                    .catch(err => console.error('Error fetching file:', err));
+            }
+        }
+
+        function fullScreen(content, errorLine) {
+            const lines = content.split('\n');
+            let formattedContent = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">';
+            formattedContent += '<title>View Source</title>';
+            formattedContent += '<style>';
+            formattedContent += 'body { font-family: -moz-fixed; font-weight: normal; white-space: pre; background-color: #ffffff; color: #000000; padding: 20px; margin: 0; }';
+            formattedContent += '@media (prefers-color-scheme: dark) { body { background-color: #333333; color: #ffffff; } }';
+            formattedContent += 'span:not(.error), a:not(.error) { unicode-bidi: embed; }';
+            formattedContent += 'span[id] { display: block; }';
+            formattedContent += '#viewsource { font-family: -moz-fixed; font-weight: normal; white-space: pre; }';
+            formattedContent += ':root { color-scheme: light dark; direction: ltr; }';
+            formattedContent += '.line-number { color: #888; margin-right: 1ch; }';
+            formattedContent += '.highlight-line { background-color: darkgoldenrod; }';
+            formattedContent += '</style></head><body id="viewsource">';
+
+            lines.forEach((line, i) => {
+                const lineNumber = i + 1;
+                // const lineText = escapeHtml(line);
+                const highlightClass = (lineNumber === errorLine) ? 'highlight-line' : '';
+                formattedContent += `<span id="L${lineNumber}"><span class="line-number">${lineNumber}</span><span class="line-content ${highlightClass}">${line}</span></span>\n`;
+            });
+
+            formattedContent += '</body></html>';
+            const blob = new Blob([formattedContent], {
+                type: 'text/html'
+            });
+            const blobUrl = URL.createObjectURL(blob);
+            window.open(blobUrl + "#L" + errorLine, '_blank');
+        }
 
         // Start resizing (common for mouse and touch)
         function startResizing(e) {
@@ -283,14 +356,16 @@
             processQueue();
         });
 
-        /*
-	   // Test the logging functions
-	   setTimeout(() => {
-		   console.log("This is a log message!");
-		   console.warn("This is a warning!");
-		   console.error(new Error("This is an error!"));
-		   console.info("This is an informational message.");
-	   }, 1000);
-	   */
+        document.addEventListener('touchmove', (e) => {
+            e.preventDefault(); // Prevent pull-to-refresh
+            handleResize(e);
+        }, {
+            passive: false
+        });
+        document.addEventListener('touchend', stopResizing, {
+            passive: true
+        });
+        console.error(new Error("This is an error!"));
+
     };
 })();
