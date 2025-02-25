@@ -205,6 +205,17 @@
             resizeHandle.addEventListener('touchstart', startResizing, {
                 passive: true
             });
+                    
+            document.addEventListener('touchmove', (e) => {
+                    e.preventDefault(); // Prevent pull-to-refresh
+                    handleResize(e);
+                }, {
+                    passive: false
+                });
+                document.addEventListener('touchend', stopResizing, {
+                    passive: true
+                });
+            };
 
             // Common resize logic
             function handleResize(e) {
@@ -355,17 +366,4 @@
             modifyBody();
             processQueue();
         });
-
-        document.addEventListener('touchmove', (e) => {
-            e.preventDefault(); // Prevent pull-to-refresh
-            handleResize(e);
-        }, {
-            passive: false
-        });
-        document.addEventListener('touchend', stopResizing, {
-            passive: true
-        });
-        console.error(new Error("This is an error!"));
-
-    };
 })();
