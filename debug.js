@@ -277,26 +277,33 @@
                 errorStackDiv.style.whiteSpace = 'pre-line';
                 errorStackDiv.style.fontSize = '0.9em';
                 errorStackDiv.style.color = '#ccc';
-
                 const lineDiv = document.createElement('div');
-
                 const link = document.createElement('div');
-                cleanUrl = message.fileName && typeof message.fileName === "string" ? message.fileName.split("?")[0] : "";
-                link.href = cleanUrl;
 
-                link.textContent = `${cleanUrl} | ${message.lineNumber} : ${message.columnNumber}`;
-                link.style.color = 'royalblue';
-                link.style.cursor = 'pointer';
-                link.onclick = (e) => {
-                    e.preventDefault();
-                    processLink(message.fileName.split("?")[0], message.lineNumber, message.columnNumber, !isLink);
+                errorURL = message?.fileName ? message.fileName.split("?")[0] : "";
+                errorLine = message?.lineNumber ?? "";
+                errorColumn = message?.columnNumber ?? "";
+
+                if (message.fileName != null) {
+                    link.href = errorURL;
+                    link.textContent = `${errorURL} | ${errorLine} : ${errorColumn}`;
+
+                    link.style.color = 'royalblue';
+                    link.style.cursor = 'pointer';
+                    link.onclick = (e) => {
+                        e.preventDefault();
+                        processLink(errorURL, errorLine, errorColumn, !isLink);
+                    };
+                } else {
+                    link.textContent = message.stack;
                 };
+
                 lineDiv.appendChild(link);
 
                 errorStackDiv.appendChild(lineDiv);
-
                 entry.appendChild(errorNameDiv);
                 entry.appendChild(errorStackDiv);
+
             } else {
                 const messageDiv = document.createElement('div');
                 messageDiv.classList.add('console-message');
@@ -315,6 +322,7 @@
                 fetchFileContent(url, line, openAsLink);
             }
         };
+
 
         function fetchFileContent(fileUrl, errorLine, openAsLink) {
             fetch(fileUrl)
