@@ -370,6 +370,7 @@
             const lines = content.split('\n');
             let formattedContent = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">';
             formattedContent += '<title>View Source</title>';
+            formattedContent += '<meta content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content" name="viewport"/>';
             formattedContent += '<style>';
             formattedContent += 'body { font-family: -moz-fixed; font-weight: normal; white-space: pre; background-color: #ffffff; color: #000000; padding: 20px; margin: 0; }';
             formattedContent += '@media (prefers-color-scheme: dark) { body { background-color: #333333; color: #ffffff; } }';
