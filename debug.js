@@ -281,7 +281,7 @@
                 const lineDiv = document.createElement('div');
 
                 const link = document.createElement('div');
-                cleanUrl = message.fileName.split("?")[0];
+                cleanUrl = message.fileName && typeof message.fileName === "string" ? message.fileName.split("?")[0] : "";
                 link.href = cleanUrl;
 
                 link.textContent = `${cleanUrl} | ${message.lineNumber} : ${message.columnNumber}`;
@@ -315,7 +315,6 @@
                 fetchFileContent(url, line, openAsLink);
             }
         };
-
 
         function fetchFileContent(fileUrl, errorLine, openAsLink) {
             fetch(fileUrl)
