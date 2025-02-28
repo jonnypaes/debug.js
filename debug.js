@@ -277,30 +277,72 @@
                 errorStackDiv.style.whiteSpace = 'pre-line';
                 errorStackDiv.style.fontSize = '0.9em';
                 errorStackDiv.style.color = '#ccc';
-                const lineDiv = document.createElement('div');
-                const link = document.createElement('div');
 
-                errorURL = message?.fileName ? message.fileName.split("?")[0] : "";
-                errorLine = message?.lineNumber ?? "";
-                errorColumn = message?.columnNumber ?? "";
+                const stackEntries = parseStack(message);
+                const container = document.createElement('div');
+                container.className = 'stack-container';
+                document.body.appendChild(container);
 
-                if (message.fileName != null) {
-                    link.href = errorURL;
-                    link.textContent = `${errorURL} | ${errorLine} : ${errorColumn}`;
+                const table = document.createElement('table');
+                table.className = 'stack-table';
 
+                // Apply CSS via JavaScript (border none)
+                table.style.borderCollapse = 'collapse';
+                table.style.width = '100%';
+                table.style.fontFamily = 'sans-serif';
+                //table.style.display = 'none'
+
+                // Create header row
+                const headerRow = document.createElement('tr');
+                ['Function', 'File', 'Line', 'Column'].forEach(text => {
+                    const th = document.createElement('th');
+                    th.textContent = text;
+                    th.style.fontWeight = 'bold';
+                    th.style.backgroundColor = '#f4f4f4';
+                    th.style.padding = '8px 12px';
+                    th.style.display = 'none';
+                    headerRow.appendChild(th);
+                });
+                table.appendChild(headerRow);
+
+                // Create rows for each parsed stack entry
+                stackEntries.forEach(entry => {
+                    const row = document.createElement('tr');
+
+                    const fnCell = document.createElement('td');
+                    fnCell.textContent = entry.functionName;
+
+                    const fileCell = document.createElement('td');
+                    const link = document.createElement('a');
+                    link.href = entry.fullFile;
+                    link.textContent = entry.fileName;
+                    link.style.textDecoration = 'none';
                     link.style.color = 'royalblue';
                     link.style.cursor = 'pointer';
                     link.onclick = (e) => {
                         e.preventDefault();
-                        processLink(errorURL, errorLine, errorColumn, !isLink);
+                        // window.open(entry.fullFile, '_blank');
+                        processLink(entry.fullFile, entry.lineNumber, entry.columnNumber, !isLink);
                     };
-                } else {
-                    link.textContent = message.stack;
-                };
+                    fileCell.appendChild(link);
 
-                lineDiv.appendChild(link);
+                    const lineCell = document.createElement('td');
+                    lineCell.textContent = entry.lineNumber;
 
-                errorStackDiv.appendChild(lineDiv);
+                    const colCell = document.createElement('td');
+                    colCell.textContent = entry.columnNumber;
+
+                    [fnCell, fileCell, lineCell, colCell].forEach(cell => {
+                        cell.style.padding = '8px 12px';
+                        cell.style.border = 'none';
+                        row.appendChild(cell);
+                    });
+
+                    table.appendChild(row);
+                });
+
+                container.appendChild(table);
+                errorStackDiv.appendChild(container);
                 entry.appendChild(errorNameDiv);
                 entry.appendChild(errorStackDiv);
 
@@ -319,12 +361,11 @@
             if (openAsLink) {
                 window.open(`${url}#L${line}`, '_blank');
             } else {
-                fetchFileContent(url, line, openAsLink);
+                fetchFileContent(url, line);
             }
         };
 
-
-        function fetchFileContent(fileUrl, errorLine, openAsLink) {
+        function fetchFileContent(fileUrl, errorLine) {
             fetch(fileUrl)
                 .then(response => {
                     let contentType = response.headers.get("Content-Type");
@@ -365,6 +406,49 @@
                 })
                 .catch(err => console.error("Error fetching file:", err));
         };
+
+        // Parse an error stack string (works for Chrome and Firefox)
+        function parseStack(error) {
+            const stack = error.stack || "";
+            const lines = stack.split('\n');
+            const stackArr = [];
+
+            const chromeRegex = /^\s*at\s+(?:(.*?)\s+\()?(.+?):(\d+):(\d+)\)?$/;
+            const firefoxRegex = /^(?:(.*?)\*?@)?(.+?):(\d+):(\d+)$/;
+
+            const startIdx = lines[0]?.startsWith('Error:') ? 1 : 0;
+
+            for (let i = startIdx; i < lines.length; i++) {
+                let line = lines[i].trim();
+                if (!line) continue;
+
+                let match = line.match(chromeRegex) || line.match(firefoxRegex);
+                if (match) {
+                    let funcName = match[1]?.trim() || '<anonymous>';
+                    let fileFull = match[2].trim();
+                    let fixedFile = fixFileLink(fileFull);
+                    let fileNameDisplay = fixedFile.split('/').pop();
+                    let lineNumber = parseInt(match[3], 10);
+                    let columnNumber = parseInt(match[4], 10);
+                    let errorFile = error.fileName ? error.fileName.split('?')[0] : fixedFile;
+
+                    stackArr.push({
+                        functionName: funcName,
+                        fileName: fileNameDisplay,
+                        fullFile: errorFile,
+                        lineNumber,
+                        columnNumber
+                    });
+                }
+            }
+            return stackArr;
+        }
+
+        function fixFileLink(url) {
+            if (!url) return "";
+            let cleanUrl = url.split('?')[0]; // Remove everything after "?"
+            return /^(https?:\/\/|file:\/\/)/.test(cleanUrl) ? cleanUrl : window.location.origin + '/' + cleanUrl;
+        }
 
         function fullScreen(content, errorLine) {
             const lines = content.split('\n');
