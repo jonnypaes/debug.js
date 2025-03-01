@@ -217,11 +217,14 @@
 
             // Touch events			
             document.addEventListener('touchmove', (e) => {
-                e.preventDefault(); // Prevent pull-to-refresh
-                handleResize(e);
+                if (!e.target.closest('.scrollable')) { 
+                    e.preventDefault();
+                    handleResize(e);
+                }    
             }, {
                 passive: false
             });
+            
             document.addEventListener('touchend', stopResizing, {
                 passive: true
             });
@@ -468,9 +471,8 @@
 
             lines.forEach((line, i) => {
                 const lineNumber = i + 1;
-                const lineText = escapeHtml(line);
                 const highlightClass = (lineNumber === errorLine) ? 'highlight-line' : '';
-                formattedContent += `<span id="L${lineNumber}"><span class="line-number">${lineNumber}</span><span class="line-content ${highlightClass}">${String(lineText)}</span></span>\n`;
+                formattedContent += `<span id="L${lineNumber}"><span class="line-number">${lineNumber}</span><span class="line-content ${highlightClass}">${String(line)}</span></span>\n`;
             });
 
             formattedContent += '</body></html>';
@@ -479,15 +481,6 @@
             });
             const blobUrl = URL.createObjectURL(blob);
             window.open(blobUrl + "#L" + errorLine, '_blank');
-        };
-        
-        function escapeHtml(unsafe) {
-          return unsafe
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
         };
 
         // Start resizing (common for mouse and touch)
