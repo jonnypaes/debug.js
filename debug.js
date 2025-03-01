@@ -1,5 +1,5 @@
 // debug.js
-(function() {
+!function() {
 
     // Initialize variables
     let isResizing = false;
@@ -505,4 +505,4 @@
         
     };
 
-})();
+}();
