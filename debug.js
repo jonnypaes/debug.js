@@ -471,8 +471,8 @@
             lines.forEach((line, i) => {
                 const lineNumber = i + 1;
                 const highlightClass = (lineNumber === errorLine) ? 'highlight-line' : '';
-                const lineText = String(line); // escapeHtml(line);
-                formattedContent += `<span id="L${lineNumber}"><span class="line-number">${lineNumber}</span><span class="line-content ${highlightClass}">${lineText}</span></span>\n`;
+                const lineText = escapeHtml(line);
+                formattedContent += `<span id="L${lineNumber}"><span class="line-number">${lineNumber}</span><span class="line-content ${highlightClass}">${String(lineText)}</span></span>\n`;
             });
 
             formattedContent += '</body></html>';
