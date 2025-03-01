@@ -217,10 +217,10 @@
 
             // Touch events			
             document.addEventListener('touchmove', (e) => {
-                if (!e.target.closest('.scrollable')) { 
+                if (e.target !== document.body) {
                     e.preventDefault();
-                    handleResize(e);
-                }    
+                };
+                handleResize(e);
             }, {
                 passive: false
             });
@@ -324,7 +324,7 @@
                     link.style.cursor = 'pointer';
                     link.onclick = (e) => {
                         e.preventDefault();
-                        processLink(entry.fullFile, entry.lineNumber, entry.columnNumber, false);
+                        processLink(entry.fullFile, entry.lineNumber, entry.columnNumber, !isLink);
                     };
                     fileCell.appendChild(link);
 
@@ -471,7 +471,8 @@
             lines.forEach((line, i) => {
                 const lineNumber = i + 1;
                 const highlightClass = (lineNumber === errorLine) ? 'highlight-line' : '';
-                formattedContent += `<span id="L${lineNumber}"><span class="line-number">${lineNumber}</span><span class="line-content ${highlightClass}">${String(line)}</span></span>\n`;
+                const lineText = escapeHtml(line);
+                formattedContent += `<span id="L${lineNumber}"><span class="line-number">${lineNumber}</span><span class="line-content ${highlightClass}">${String(lineText)}</span></span>\n`;
             });
 
             formattedContent += '</body></html>';
