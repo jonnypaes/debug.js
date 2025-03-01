@@ -324,8 +324,7 @@
                     link.style.cursor = 'pointer';
                     link.onclick = (e) => {
                         e.preventDefault();
-                        // window.open(entry.fullFile, '_blank');
-                        processLink(entry.fullFile, entry.lineNumber, entry.columnNumber, !isLink);
+                        processLink(entry.fullFile, entry.lineNumber, entry.columnNumber, isLink);
                     };
                     fileCell.appendChild(link);
 
@@ -501,8 +500,8 @@
             processQueue();
         });
 
-        console.error(new Error("This is a thrown error!"));
-
+        console.debug(new Error("Welcome to debug.JS!"));
+        
     };
 
 })();
