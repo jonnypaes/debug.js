@@ -399,7 +399,7 @@
                     } else if (data instanceof Blob) {
                         processedContent = URL.createObjectURL(data); // Convert Blob (images)
                     } else {
-                        processedContent = data; // Text-based content
+                        processedContent = String(data); // Text-based content
                     }
 
                     fullScreen(processedContent, errorLine);
