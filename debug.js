@@ -442,13 +442,13 @@
                 }
             }
             return stackArr;
-        }
+        };
 
         function fixFileLink(url) {
             if (!url) return "";
-            let cleanUrl = url.split('?')[0]; // Remove everything after "/?"
+            let cleanUrl = url.split('?')[0].replace(/^\/+/, '').replace(/\/$/, ''); // Remove leading and trailing "/"
             return /^(https?:\/\/|file:\/\/)/.test(cleanUrl) ? cleanUrl : window.location.origin + '/' + cleanUrl;
-        }
+        };
 
         function fullScreen(content, errorLine) {
             const lines = content.split('\n');
@@ -479,7 +479,7 @@
             });
             const blobUrl = URL.createObjectURL(blob);
             window.open(blobUrl + "#L" + errorLine, '_blank');
-        }
+        };
 
         // Start resizing (common for mouse and touch)
         function startResizing(e) {
