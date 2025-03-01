@@ -413,8 +413,8 @@
             const lines = stack.split('\n');
             const stackArr = [];
 
-            const chromeRegex = /^\s*at\s+(?:(.*?)\s+\()?(.+?):(\d+):(\d+)\)?$/;
-            const firefoxRegex = /^(?:(.*?)\*?@)?(.+?):(\d+):(\d+)$/;
+            const chromeRegex = /^\s*at\s+(?:(.*?)\s+\()?\/?(.+?):(\d+):(\d+)\)?$/;
+            const firefoxRegex = /^(?:(.*?)\*?@)?\/?(.+?):(\d+):(\d+)$/;
 
             const startIdx = lines[0]?.startsWith('Error:') ? 1 : 0;
 
@@ -446,7 +446,7 @@
 
         function fixFileLink(url) {
             if (!url) return "";
-            let cleanUrl = url.split('?')[0]; // Remove everything after "?"
+            let cleanUrl = url.split('?')[0]; // Remove everything after "/?"
             return /^(https?:\/\/|file:\/\/)/.test(cleanUrl) ? cleanUrl : window.location.origin + '/' + cleanUrl;
         }
 
