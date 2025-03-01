@@ -470,7 +470,7 @@
                 const lineNumber = i + 1;
                 const lineText = escapeHtml(line);
                 const highlightClass = (lineNumber === errorLine) ? 'highlight-line' : '';
-                formattedContent += `<span id="L${lineNumber}"><span class="line-number">${lineNumber}</span><span class="line-content ${highlightClass}">${String(line)}</span></span>\n`;
+                formattedContent += `<span id="L${lineNumber}"><span class="line-number">${lineNumber}</span><span class="line-content ${highlightClass}">${String(lineText)}</span></span>\n`;
             });
 
             formattedContent += '</body></html>';
