@@ -324,7 +324,7 @@
                     link.style.cursor = 'pointer';
                     link.onclick = (e) => {
                         e.preventDefault();
-                        processLink(entry.fullFile, entry.lineNumber, entry.columnNumber, isLink);
+                        processLink(entry.fullFile, entry.lineNumber, entry.columnNumber, false);
                     };
                     fileCell.appendChild(link);
 
