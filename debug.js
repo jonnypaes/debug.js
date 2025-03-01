@@ -452,6 +452,20 @@
             return /^(https?:\/\/|file:\/\/)/.test(cleanUrl) ? cleanUrl : window.location.origin + '/' + cleanUrl;
         };
 
+        // Function to escape HTML content for safety
+        function escapeHtml(str) {
+            return str.replace(/[&<>"']/g, (match) => {
+                const escapeChars = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                };
+                return escapeChars[match];
+            });
+        };
+        
         function fullScreen(content, errorLine) {
             const lines = content.split('\n');
             let formattedContent = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">';
