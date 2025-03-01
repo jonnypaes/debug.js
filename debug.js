@@ -468,7 +468,7 @@
 
             lines.forEach((line, i) => {
                 const lineNumber = i + 1;
-                // const lineText = escapeHtml(line);
+                const lineText = escapeHtml(line);
                 const highlightClass = (lineNumber === errorLine) ? 'highlight-line' : '';
                 formattedContent += `<span id="L${lineNumber}"><span class="line-number">${lineNumber}</span><span class="line-content ${highlightClass}">${line}</span></span>\n`;
             });
@@ -479,6 +479,15 @@
             });
             const blobUrl = URL.createObjectURL(blob);
             window.open(blobUrl + "#L" + errorLine, '_blank');
+        };
+        
+        function escapeHtml(unsafe) {
+          return unsafe
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
         };
 
         // Start resizing (common for mouse and touch)
