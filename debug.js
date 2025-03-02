@@ -41,6 +41,10 @@
         info: {
             emoji: '🔵',
             border: '#2196F3'
+        },
+        debug: {
+            emoji: '⚪',
+            border: '#FFFFFF'
         }
     };
 
@@ -117,6 +121,7 @@
                 }
             };
 
+            // Store the logs in a Queue and wait until body is ready
             function processQueue() {
                 domReady = true;
                 logQueue.forEach(({
@@ -324,8 +329,9 @@
                     link.style.cursor = 'pointer';
                     link.onclick = (e) => {
                         e.preventDefault();
-                        processLink(entry.fullFile, entry.lineNumber, entry.columnNumber, !isLink);
+                        fetchFileContent(entry.fullFile, entry.lineNumber);
                     };
+                    
                     fileCell.appendChild(link);
 
                     const lineCell = document.createElement('td');
@@ -359,14 +365,7 @@
             document.getElementById('consoleOutput').appendChild(entry);
         };
 
-        function processLink(url, line, column, openAsLink) {
-            if (openAsLink) {
-                window.open(`${url}#L${line}`, '_blank');
-            } else {
-                fetchFileContent(url, line);
-            }
-        };
-
+        // Function to fetch the file from the stack
         function fetchFileContent(fileUrl, errorLine) {
             fetch(fileUrl)
                 .then(response => {
@@ -446,9 +445,10 @@
             return stackArr;
         };
 
+        /// Remove leading and trailing "/"
         function fixFileLink(url) {
             if (!url) return "";
-            let cleanUrl = url.split('?')[0].replace(/^\/+/, '').replace(/\/$/, ''); // Remove leading and trailing "/"
+            let cleanUrl = url.split('?')[0].replace(/^\/+/, '').replace(/\/$/, '');
             return /^(https?:\/\/|file:\/\/)/.test(cleanUrl) ? cleanUrl : window.location.origin + '/' + cleanUrl;
         };
 
@@ -465,14 +465,15 @@
                 return escapeChars[match];
             });
         };
-        
+
+        // Runtime create an object and open it
         function fullScreen(content, errorLine) {
             const lines = content.split('\n');
             let formattedContent = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">';
             formattedContent += '<title>View Source</title>';
             formattedContent += '<meta content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content" name="viewport"/>';
             formattedContent += '<style>';
-            formattedContent += 'body { font-family: -moz-fixed; font-weight: normal; white-space: pre; background-color: #ffffff; color: #000000; padding: 20px; margin: 0; }';
+            formattedContent += 'body { font-family: -moz-fixed; font-weight: normal; white-space: pre; background-color: #ffffff; color: #000000; padding: 12px; margin: 0; }';
             formattedContent += '@media (prefers-color-scheme: dark) { body { background-color: #333333; color: #ffffff; } }';
             formattedContent += 'span:not(.error), a:not(.error) { unicode-bidi: embed; }';
             formattedContent += 'span[id] { display: block; }';
@@ -510,12 +511,14 @@
             document.body.style.cursor = 'default'; // Reset cursor
         };
 
+        // Call the functions at page loading
         window.addEventListener("load", () => {
             modifyBody();
             processQueue();
         });
 
-        console.debug(new Error("Welcome to debug.JS!"));
+        // Welcoming first message
+        console.debug("Welcome to debug.js!"));
         
     };
 
