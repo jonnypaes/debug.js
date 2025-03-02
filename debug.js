@@ -518,7 +518,7 @@
         });
 
         // Welcoming first message
-        console.debug("Welcome to debug.js!"));
+        console.debug("Welcome to debug.js!");
         
     };
 
